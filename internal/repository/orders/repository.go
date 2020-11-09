@@ -7,24 +7,29 @@ import (
 	"fmt"
 )
 
-var requestUlr =  "localhost:3004/v1/orders/%s"
+var requestUlr = "http://localhost:3004/v1/orders/%s"
 
 type Repository interface {
-	GetById(ctx context.Context,id string) (*model.Shipment,error)
+	GetById(ctx context.Context, id string) (*model.Order, error)
 }
 
-func NewRepositoryDynamo(restClien restclient.RestClient)  Repository {
-	return &repository{}
+func NewRepository(restClient restclient.RestClient) Repository {
+	return &repository{
+		restClient,
+	}
 }
 
 type repository struct {
 	restclient.RestClient
 }
 
-func (r *repository) GetById(ctx context.Context, id string) (*model.Shipment, error) {
+func (r *repository) GetById(ctx context.Context, id string) (*model.Order, error) {
 
-	url := fmt.Sprintf(requestUlr,id)
-
-	r.DoGet(ctx,url,)
+	url := fmt.Sprintf(requestUlr, id)
+	order := &model.Order{}
+	err := r.DoGet(ctx, url, order)
+	if err != nil {
+		return nil, err
+	}
+	return order, nil
 }
-

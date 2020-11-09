@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"strings"
@@ -22,10 +23,9 @@ func securityMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		token := tokenString[7:]
-
-		if os.Getenv("SKIP_AUTH") != "true"{
-			req, err := http.NewRequest("GET",os.Getenv("USER_URL")+"/v1/users/current", nil)
-			if err != nil || req == nil{
+		if os.Getenv("SKIP_AUTH") != "true" {
+			req, err := http.NewRequest("GET", "http://localhost:3000/v1/users/current", nil)
+			if err != nil || req == nil {
 				ErrorResponse(w, 500, "internal_server_error")
 				return
 			}
@@ -36,7 +36,7 @@ func securityMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		}
-	
-		next.ServeHTTP(w, r)
-})
+		ctx := context.WithValue(r.Context(), "user_logged", tokenString)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
